@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tio's Broaster Caja</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: barra de marca fija arriba; resumen del cierre; luego entradas (ingresos) y salidas (egresos) lado a lado; cocina y caja abajo */
+:root{
+  --paper:#f3f2ee; --surface:#ffffff; --field:#f8f7f4; --ink:#1d1a17; --muted:#6c675f; --line:#e2dfd8;
+  --crust:#e3a21a; --crust-ink:#241800; --crust-soft:#fbefd0;
+  --bar:#1d1a17; --bar-ink:#f6f2ea; --bar-muted:#b4ada2;
+  --ok:#1f7a4d; --ok-soft:#e2f1e9; --bad:#bf3a2b; --bad-soft:#fae5e1;
+  --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#121110; --surface:#1c1a18; --field:#171614; --ink:#f1eee8; --muted:#a29b91; --line:#312e2a;
+  --crust:#f0b43c; --crust-ink:#211600; --crust-soft:#372a10;
+  --bar:#0a0908; --bar-ink:#f6f2ea; --bar-muted:#a29b91;
+  --ok:#5cc690; --ok-soft:#14301f; --bad:#f07b6b; --bad-soft:#3a1c17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#121110; --surface:#1c1a18; --field:#171614; --ink:#f1eee8; --muted:#a29b91; --line:#312e2a;
+  --crust:#f0b43c; --crust-ink:#211600; --crust-soft:#372a10;
+  --bar:#0a0908; --bar-ink:#f6f2ea; --bar-muted:#a29b91;
+  --ok:#5cc690; --ok-soft:#14301f; --bad:#f07b6b; --bad-soft:#3a1c17; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.45 var(--f-body)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bar)}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--crust);outline-offset:2px}
+
+/* Barra superior */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bar);color:var(--bar-ink)}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.mark{width:34px;height:34px;border-radius:8px;background:var(--crust);color:var(--crust-ink);display:grid;place-items:center;font:800 15px/1 var(--f-display);letter-spacing:-.5px}
+.brand b{display:block;font:800 17px/1.1 var(--f-display);letter-spacing:.3px;text-transform:uppercase}
+.brand span{display:block;font-size:12px;color:var(--bar-muted)}
+.seg{display:flex;background:rgba(255,255,255,.08);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--bar-muted);padding:6px 14px;border-radius:999px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--bar-ink);color:var(--bar)}
+
+main{padding-block:16px 72px}
+
+/* Navegación de fecha */
+.daybar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.datebox{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+.datebox h1{margin:0;font:700 22px/1.15 var(--f-display);text-wrap:balance;min-width:0}
+.daybar .actions{margin-left:auto}
+@media (max-width:760px){.daybar .actions{width:100%;margin-left:0}.daybar .actions input{flex:1.6;min-width:135px}}
+.datebox input{width:auto;padding:6px 8px;font-size:13px}
+.icon-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:18px;line-height:1;display:grid;place-items:center;flex:none}
+.icon-btn:hover{border-color:var(--ink)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:8px 14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--crust);border-color:var(--crust);color:var(--crust-ink)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.add{width:100%;border-radius:var(--r);border-style:dashed;color:var(--muted);background:transparent;margin-top:2px}
+.btn.add:hover{color:var(--ink)}
+
+/* Resumen del cierre */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,2fr);background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:16px}
+.hero-main{background:var(--crust);color:var(--crust-ink);padding:18px 20px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.eyebrow{font:600 11px/1.2 var(--f-body);text-transform:uppercase;letter-spacing:1.2px;opacity:.8}
+.big{font:600 clamp(28px,6vw,40px)/1.1 var(--f-num);letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.hero-main .sub{font-size:13px;opacity:.85}
+.hero dl{margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+.hero dl div{padding:16px;border-left:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;gap:4px;min-width:0}
+.hero dt{font-size:12px;color:var(--muted)}
+.hero dd{margin:0;font:600 18px/1.2 var(--f-num);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.pos{color:var(--ok)} .neg{color:var(--bad)}
+
+/* Secciones */
+.board{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.col{display:grid;gap:16px;min-width:0}
+.group-label{display:flex;align-items:center;gap:8px;font:700 12px/1 var(--f-display);text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin:6px 2px -6px}
+.group-label i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.group-label.in i{background:var(--ok)} .group-label.out i{background:var(--bad)} .group-label.kit i{background:var(--crust)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+.card h2{margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;font:700 16px/1.2 var(--f-display);letter-spacing:.2px}
+.tag{font:600 13px/1 var(--f-num);padding:5px 9px;border-radius:999px;background:var(--paper);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tag.in{background:var(--ok-soft);color:var(--ok)} .tag.out{background:var(--bad-soft);color:var(--bad)}
+
+input,textarea{width:100%;background:var(--field);border:1px solid var(--line);border-radius:8px;padding:9px 10px;min-width:0}
+input:focus,textarea:focus{outline:2px solid var(--crust);outline-offset:-1px;background:var(--surface)}
+input:disabled{color:var(--ink);opacity:1;font-family:var(--f-num);font-weight:600}
+.money{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+textarea{min-height:96px;resize:vertical}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+
+[data-list]{container-type:inline-size}
+.row{display:grid;gap:6px;align-items:center;margin-bottom:6px;grid-template-columns:var(--tpl)}
+@container (max-width:480px){.row.wide{grid-template-columns:var(--mtpl);padding-bottom:8px;margin-bottom:8px;border-bottom:1px solid var(--line)}.row.wide>input:first-child{grid-column:1/-1}}
+.row .calc{font:600 14px/1 var(--f-num);text-align:right;padding:0 4px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.x{border:0;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;padding:4px 6px;line-height:1;border-radius:6px}
+.x:hover{color:var(--bad);background:var(--bad-soft)}
+.empty{font-size:13px;color:var(--muted);margin:0 0 8px}
+.hint{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+.hint b{font-family:var(--f-num);font-weight:500;color:var(--ink)}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:var(--crust-soft);border-radius:999px;padding:6px 11px;font-size:13px;cursor:pointer;display:flex;gap:6px;align-items:baseline}
+.chip:hover{border-color:var(--crust)}
+.chip span{font-family:var(--f-num);font-size:12px;color:var(--muted)}
+.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.counter{display:flex;align-items:center;gap:14px}
+.counter b{font:600 32px/1 var(--f-num);min-width:48px;text-align:center}
+.counter .icon-btn{width:46px;height:46px;font-size:22px}
+
+/* Historial */
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.stat span{display:block;font-size:12px;color:var(--muted)}
+.stat b{font:600 19px/1.3 var(--f-num);font-variant-numeric:tabular-nums}
+.stat.hi{background:var(--crust);border-color:var(--crust);color:var(--crust-ink)}
+.stat.hi span{color:inherit;opacity:.8}
+.histbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+.histbar input[type=month]{flex:1;min-width:150px;width:auto}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+td{font-family:var(--f-num);font-size:14px}
+th:first-child,td:first-child{text-align:left;font-family:var(--f-body);text-transform:capitalize}
+th{font-size:12px;color:var(--muted);font-weight:600}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--paper)}
+
+.toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast.on{opacity:1}
+.hide{display:none!important}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr}
+  .hero dl{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero dl div{border-left:0;border-top:1px solid var(--line)}
+  .hero dl div:nth-child(even){border-left:1px solid var(--line)}
+  .board{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .brand span{display:none}
+  .daybar .actions{width:100%}
+  .daybar .actions .btn{flex:1}
+  .datebox h1{font-size:19px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <div class="mark" aria-hidden="true">TB</div>
+      <div><b>Tio's Broaster</b><span>Diario de cuentas</span></div>
+    </div>
+    <nav class="seg tabs" aria-label="Secciones">
+      <button data-tab="dia" class="on">Día</button>
+      <button data-tab="hist">Historial</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+<section id="tab-dia">
+  <div class="daybar">
+    <button class="icon-btn" id="prev" aria-label="Día anterior">‹</button>
+    <div class="datebox">
+      <h1 id="fechaTxt"></h1>
+    </div>
+    <button class="icon-btn" id="next" aria-label="Día siguiente">›</button>
+    <div class="actions">
+      <input type="date" id="fecha" aria-label="Elegir fecha">
+      <button class="btn" id="hoy">Hoy</button>
+      <button class="btn primary" id="pdf">Descargar PDF</button>
+    </div>
+  </div>
+
+  <div class="hero" id="resumen">
+    <div class="hero-main">
+      <span class="eyebrow">Ventas del día</span>
+      <b class="big" id="hVentas">$0</b>
+      <span class="sub" id="hDetalle"></span>
+    </div>
+    <dl>
+      <div><dt>Gastos caja</dt><dd id="hGastos">$0</dd></div>
+      <div><dt>Sueldos</dt><dd id="hSueldos">$0</dd></div>
+      <div><dt>Ventas − gastos − sueldos</dt><dd id="hRes">$0</dd></div>
+      <div><dt>Neto a guardar</dt><dd id="hNeto">$0</dd></div>
+    </dl>
+  </div>
+
+  <div class="board">
+    <div class="col">
+      <div class="group-label in"><i></i>Entradas</div>
+      <div class="card">
+        <h2>Comidas rápidas <span class="tag in" id="t-comidas"></span></h2>
+        <div data-list="comidas"></div>
+      </div>
+      <div class="card">
+        <h2>Otras ventas <span class="tag in" id="t-ventas"></span></h2>
+        <div class="chips" id="chips"></div>
+        <div data-list="ventas"></div>
+      </div>
+      <div class="card">
+        <h2>Datos del día</h2>
+        <div class="kv">
+          <div><label for="primicia">Primicia</label><input id="primicia" data-f="primicia" inputmode="numeric" class="money"></div>
+          <div><label for="elaborado">Elaborado por</label><input id="elaborado" data-f="elaborado"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="group-label out"><i></i>Salidas</div>
+      <div class="card">
+        <h2>Gastos caja <span class="tag out" id="t-gastos"></span></h2>
+        <div data-list="gastos"></div>
+      </div>
+      <div class="card">
+        <h2>Sueldos <span class="tag out" id="t-sueldos"></span></h2>
+        <div data-list="sueldos"></div>
+        <p class="hint">En descuentos puedes escribir varios valores: <b>30000+2500+40000</b></p>
+      </div>
+      <div class="card">
+        <h2>Base y cierre</h2>
+        <div class="kv">
+          <div><label for="moneda">Moneda</label><input id="moneda" data-f="moneda" inputmode="numeric" class="money"></div>
+          <div><label for="billete">Billete</label><input id="billete" data-f="billete" inputmode="numeric" class="money"></div>
+          <div><label for="baseTotal">Total base</label><input id="baseTotal" disabled></div>
+          <div><label for="neto">Neto a guardar</label><input id="neto" data-f="neto" inputmode="numeric" class="money"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="group-label kit"><i></i>Cocina</div>
+      <div class="card">
+        <h2>Reporte de fileteo</h2>
+        <div class="kv" id="fileteo"></div>
+      </div>
+      <div class="card">
+        <h2>Porción papa</h2>
+        <div class="counter">
+          <button class="icon-btn" id="papaMenos" aria-label="Restar porción">−</button>
+          <b id="papa">0</b>
+          <button class="icon-btn" id="papaMas" aria-label="Sumar porción">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="group-label kit"><i></i>Inventario y novedades</div>
+      <div class="card">
+        <h2>Inventario final</h2>
+        <div class="kv" id="inventario"></div>
+      </div>
+      <div class="card">
+        <h2>Novedades</h2>
+        <textarea id="novedades" data-f="novedades" aria-label="Novedades" placeholder="Ej: 2 salchipapa con gaseosa Jhonier total 58.500"></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tab-hist" class="hide">
+  <div class="histbar">
+    <input type="month" id="mes" aria-label="Mes">
+    <button class="btn" id="csv">Exportar Excel (CSV)</button>
+    <button class="btn" id="backup">Copia de seguridad</button>
+    <label class="btn" style="margin:0;font-size:15px;color:var(--ink)">Restaurar<input type="file" id="restore" accept=".json" class="hide"></label>
+  </div>
+  <div class="sum" id="resumenMes"></div>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th>Fecha</th><th>Ventas</th><th>Gastos</th><th>Sueldos</th><th>Base</th><th>Neto guardar</th><th></th></tr></thead>
+      <tbody id="histBody"></tbody>
+    </table>
+    <p class="empty" id="histVacio" style="margin:12px 0 0">No hay días guardados en este mes. Los días aparecen aquí apenas escribes algo en ellos.</p>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+const KEY = 'tiosbroaster:v1';
+const FILETEO = ['Pechuga','Alas','Pernil','Contramuslo','Peso de recorte'];
+const INVENTARIO = ['Alas','Pernil','Contramuslo','Recorte','Aceite','Harina','Pasta','Papa precocida','Papa bulto','Pechuga'];
+const PRODUCTOS_BASE = [['Granizado',6000],['Granizado',12000],['Helado',6000],['Helado',10000],['Affogato',9000],['Jarra maracuyá en agua',9000]];
+
+// Columnas de cada lista: t = text | money | qty | expr | calc
+const LISTS = {
+  comidas: {cols: [{k:'producto',t:'text',ph:'Producto'},{k:'valor',t:'money',ph:'Valor'}], tpl:'1fr 120px 32px', add:'+ Agregar comida', vacio:'Todavía no hay comidas rápidas registradas hoy.'},
+  ventas:  {cols: [{k:'producto',t:'text',ph:'Producto'},{k:'cant',t:'qty',ph:'Cant'},{k:'precio',t:'money',ph:'Precio'},{k:'total',t:'calc'}], tpl:'1fr 52px 90px 80px 28px', mtpl:'60px 1fr auto 28px', add:'+ Agregar venta', vacio:'Toca un producto de arriba para sumarlo, o agrega uno nuevo.', calc: r => num(r.cant||1) * num(r.precio)},
+  gastos:  {cols: [{k:'valor',t:'money',ph:'Valor'},{k:'detalle',t:'text',ph:'Detalle'}], tpl:'120px 1fr 32px', add:'+ Agregar gasto', vacio:'Sin gastos de caja por ahora.'},
+  sueldos: {cols: [{k:'nombre',t:'text',ph:'Nombre del empleado'},{k:'base',t:'money',ph:'Sueldo'},{k:'desc',t:'expr',ph:'Descuentos'},{k:'neto',t:'calc'}], tpl:'1fr 86px 86px 80px 28px', mtpl:'1fr 1fr auto 28px', add:'+ Agregar empleado', vacio:'Agrega a los empleados que trabajaron hoy.', calc: r => num(r.base) - expr(r.desc)}
+};
+
+let db = load();
+let cur = today();
+let day = getDay(cur);
+
+function load(){
+  try { return JSON.parse(localStorage.getItem(KEY)) || {days:{}}; } catch(e){ return {days:{}}; }
+}
+// Copia local siempre; si la página está publicada, cada día se guarda también en la nube
+let remote = null, writing = false, timer;
+const pend = new Set();
+function persist(dates = [cur]){
+  try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){}
+  if (!remote) return;
+  dates.forEach(d => pend.add(d));
+  clearTimeout(timer); timer = setTimeout(flush, 800);
+}
+async function flush(){
+  if (writing) return;
+  writing = true;
+  try {
+    while (pend.size){
+      const d = pend.values().next().value;
+      pend.delete(d);
+      const ref = remote.collection('dias').doc(d);
+      try { db.days[d] ? await ref.set(db.days[d]) : await ref.delete(); }
+      catch(e){
+        if (e.code === 'unavailable'){ pend.add(d); setTimeout(flush, 1500 + Math.random()*1000); break; }
+        toast(e.code === 'quota_exceeded' ? 'La nube está llena' : 'No se pudo guardar en la nube');
+      }
+    }
+  } finally { writing = false; }
+}
+async function conectarNube(){
+  if (!window.claude?.use) return;
+  const r = await claude.use('db');
+  if (!r) return;
+  remote = r;
+  let primera = true;
+  r.collection('dias').onSnapshot(snap => {
+    const days = {};
+    snap.docs.forEach(d => { if (d.exists) days[d.id] = structuredClone(d.data()); });
+    // La primera vez sube los días que solo estaban guardados en este dispositivo
+    if (primera){
+      primera = false;
+      for (const k in db.days) if (!days[k]) pend.add(k);
+      if (pend.size) flush();
+    }
+    for (const k of pend){ if (db.days[k]) days[k] = db.days[k]; else delete days[k]; }
+    db.days = days;
+    try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){}
+    refrescar(false);
+  }, () => toast('Sin conexión con la nube'));
+}
+function today(){
+  const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0,10);
+}
+function shift(date, n){
+  const d = new Date(date + 'T12:00:00'); d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0,10);
+}
+function blank(){
+  return {primicia:'',elaborado:'',moneda:'',billete:'',neto:'',novedades:'',papa:0,comidas:[],ventas:[],gastos:[],sueldos:[],fileteo:{},inventario:{}};
+}
+// Un día nuevo trae los empleados y sueldos del último día guardado
+function getDay(date){
+  if (db.days[date]) return db.days[date];
+  const d = blank();
+  const prev = Object.keys(db.days).filter(k => k < date).sort().pop();
+  if (prev) d.sueldos = db.days[prev].sueldos.map(s => ({nombre:s.nombre, base:s.base, desc:''}));
+  return d;
+}
+function save(){
+  db.days[cur] = day;
+  persist();
+  totals();
+}
+
+function num(v){
+  if (v === undefined || v === null || v === '') return 0;
+  const n = parseInt(String(v).replace(/[^\d-]/g,''), 10);
+  return isNaN(n) ? 0 : n;
+}
+// Suma valores separados por + o - (los signos se toman como "descontar")
+function expr(v){
+  return String(v||'').split(/[+\-\s]+/).reduce((a,p) => a + num(p), 0);
+}
+const fmt = n => '$' + Math.round(n).toLocaleString('es-CO');
+const fmtIn = v => v === '' || v === undefined ? '' : num(v).toLocaleString('es-CO');
+
+function sumList(name){
+  const L = LISTS[name];
+  return day[name].reduce((a,r) => a + (L.calc ? L.calc(r) : num(r.valor)), 0);
+}
+function calcDay(d){
+  const prev = day; day = d;
+  const t = {comidas:sumList('comidas'), ventas:sumList('ventas'), gastos:sumList('gastos'), sueldos:sumList('sueldos'), base:num(d.moneda)+num(d.billete), neto:num(d.neto)};
+  day = prev;
+  t.totalVentas = t.comidas + t.ventas;
+  return t;
+}
+
+function totals(){
+  const t = calcDay(day);
+  for (const k of ['comidas','ventas','gastos','sueldos']) document.getElementById('t-'+k).textContent = fmt(t[k]);
+  document.getElementById('baseTotal').value = fmt(t.base);
+  const set = (id, txt) => document.getElementById(id).textContent = txt;
+  set('hVentas', fmt(t.totalVentas));
+  set('hDetalle', `Comidas ${fmt(t.comidas)} · Otras ventas ${fmt(t.ventas)}`);
+  set('hGastos', fmt(t.gastos)); set('hSueldos', fmt(t.sueldos)); set('hNeto', fmt(t.neto));
+  const res = t.totalVentas - t.gastos - t.sueldos, hRes = document.getElementById('hRes');
+  hRes.textContent = (res < 0 ? '−' : '') + fmt(Math.abs(res));
+  hRes.className = res < 0 ? 'neg' : res > 0 ? 'pos' : '';
+  for (const name in LISTS){
+    const L = LISTS[name]; if (!L.calc) continue;
+    document.querySelectorAll(`[data-list="${name}"] .calc`).forEach((el,i) => { if (day[name][i]) el.textContent = fmt(L.calc(day[name][i])); });
+  }
+}
+const stat = (label, v, hi) => `<div class="stat${hi?' hi':''}"><span>${label}</span><b>${fmt(v)}</b></div>`;
+
+function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function renderList(name){
+  const L = LISTS[name], box = document.querySelector(`[data-list="${name}"]`);
+  box.innerHTML = (day[name].length ? '' : `<p class="empty">${L.vacio}</p>`) + day[name].map((r,i) => `<div class="row${L.mtpl?' wide':''}" style="--tpl:${L.tpl};--mtpl:${L.mtpl||''}">` +
+    L.cols.map(c => c.t === 'calc' ? `<span class="calc"></span>` :
+      `<input data-i="${i}" data-k="${c.k}" placeholder="${c.ph}" value="${esc(c.t==='money'?fmtIn(r[c.k]):r[c.k])}"` +
+      (c.t==='money'||c.t==='qty' ? ' inputmode="numeric" class="money"' : '') +
+      (c.t==='text' ? ` list="dl-${name}-${c.k}"` : '') + `>`).join('') +
+    `<button class="x" data-del="${i}" title="Quitar">×</button></div>`).join('') +
+    `<button class="btn add" data-add>${L.add}</button>` +
+    L.cols.filter(c => c.t==='text').map(c => `<datalist id="dl-${name}-${c.k}">${suggest(name,c.k).map(s=>`<option value="${esc(s)}">`).join('')}</datalist>`).join('');
+  box.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => { day[name][inp.dataset.i][inp.dataset.k] = inp.value; save(); }));
+  box.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { day[name].splice(b.dataset.del,1); save(); renderList(name); });
+  box.querySelector('[data-add]').onclick = () => {
+    day[name].push({}); save(); renderList(name);
+    const ins = box.querySelectorAll('.row:last-of-type input'); if (ins.length) ins[0].focus();
+  };
+  totals();
+}
+function suggest(name, k){
+  const s = new Set();
+  Object.values(db.days).forEach(d => (d[name]||[]).forEach(r => r[k] && s.add(r[k])));
+  return [...s].sort();
+}
+
+// Botones rápidos: productos base + los más vendidos del historial
+function renderChips(){
+  const count = new Map();
+  PRODUCTOS_BASE.forEach(([p,v]) => count.set(p+'|'+v, 0));
+  Object.values(db.days).forEach(d => (d.ventas||[]).forEach(r => {
+    if (!r.producto || !num(r.precio)) return;
+    const k = r.producto.trim()+'|'+num(r.precio); count.set(k, (count.get(k)||0) + num(r.cant||1));
+  }));
+  const top = [...count.entries()].sort((a,b) => b[1]-a[1]).slice(0,10).map(([k]) => k.split('|'));
+  const box = document.getElementById('chips');
+  box.innerHTML = top.map(([p,v]) => `<button class="chip" data-p="${esc(p)}" data-v="${v}">${esc(p)} <span>${fmt(v)}</span></button>`).join('');
+  box.querySelectorAll('.chip').forEach(b => b.onclick = () => {
+    const p = b.dataset.p, v = +b.dataset.v;
+    const r = day.ventas.find(r => (r.producto||'').trim().toLowerCase() === p.toLowerCase() && num(r.precio) === v);
+    if (r) r.cant = num(r.cant||1) + 1; else day.ventas.push({producto:p, cant:1, precio:v});
+    save(); renderList('ventas'); toast(`+1 ${p}`);
+  });
+}
+
+function renderKV(id, fields, obj){
+  const box = document.getElementById(id);
+  box.innerHTML = fields.map(f => `<div><label>${f}</label><input data-k="${f}" value="${esc(day[obj][f])}"></div>`).join('');
+  box.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => { day[obj][inp.dataset.k] = inp.value; save(); }));
+}
+
+function renderDay(){
+  day = getDay(cur);
+  document.getElementById('fecha').value = cur;
+  const larga = new Date(cur + 'T12:00:00').toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long'});
+  document.getElementById('fechaTxt').textContent = cur === today() ? 'Hoy, ' + larga : larga[0].toUpperCase() + larga.slice(1);
+  document.querySelectorAll('[data-f]').forEach(el => el.value = el.classList.contains('money') ? fmtIn(day[el.dataset.f]) : (day[el.dataset.f] || ''));
+  document.getElementById('papa').textContent = day.papa || 0;
+  Object.keys(LISTS).forEach(renderList);
+  renderKV('fileteo', FILETEO, 'fileteo');
+  renderKV('inventario', INVENTARIO, 'inventario');
+  renderChips();
+}
+
+document.querySelectorAll('[data-f]').forEach(el => el.addEventListener('input', () => { day[el.dataset.f] = el.value; save(); }));
+// Formato de miles al salir de un campo de dinero
+document.addEventListener('focusout', e => { if (e.target.classList?.contains('money') && e.target.value) e.target.value = fmtIn(e.target.value); });
+
+document.getElementById('papaMas').onclick = () => { day.papa = (day.papa||0) + 1; document.getElementById('papa').textContent = day.papa; save(); };
+document.getElementById('papaMenos').onclick = () => { day.papa = Math.max(0,(day.papa||0) - 1); document.getElementById('papa').textContent = day.papa; save(); };
+document.getElementById('fecha').onchange = e => { if (e.target.value){ cur = e.target.value; renderDay(); } };
+document.getElementById('prev').onclick = () => { cur = shift(cur,-1); renderDay(); };
+document.getElementById('next').onclick = () => { cur = shift(cur,1); renderDay(); };
+document.getElementById('hoy').onclick = () => { cur = today(); renderDay(); };
+
+// Historial
+document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.getElementById('tab-dia').classList.toggle('hide', b.dataset.tab !== 'dia');
+  document.getElementById('tab-hist').classList.toggle('hide', b.dataset.tab !== 'hist');
+  if (b.dataset.tab === 'hist') renderHist(); else renderDay();
+});
+const mes = document.getElementById('mes');
+mes.value = cur.slice(0,7);
+mes.onchange = renderHist;
+
+function renderHist(){
+  const dias = Object.keys(db.days).filter(k => k.startsWith(mes.value)).sort().reverse();
+  const tot = {totalVentas:0, gastos:0, sueldos:0, neto:0};
+  document.getElementById('histBody').innerHTML = dias.map(k => {
+    const t = calcDay(db.days[k]);
+    for (const x in tot) tot[x] += t[x];
+    const f = new Date(k+'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'});
+    return `<tr data-d="${k}"><td>${f}</td><td>${fmt(t.totalVentas)}</td><td>${fmt(t.gastos)}</td><td>${fmt(t.sueldos)}</td><td>${fmt(t.base)}</td><td>${fmt(t.neto)}</td><td><button class="x" data-borrar="${k}" title="Borrar día">×</button></td></tr>`;
+  }).join('');
+  document.getElementById('histVacio').classList.toggle('hide', dias.length > 0);
+  document.getElementById('resumenMes').innerHTML = stat('Ventas del mes', tot.totalVentas, true) + stat('Gastos del mes', tot.gastos) + stat('Sueldos del mes', tot.sueldos) + stat('Neto guardado', tot.neto);
+  document.querySelectorAll('#histBody tr').forEach(tr => tr.onclick = e => {
+    const b = e.target.dataset.borrar;
+    if (b){
+      // Doble toque para borrar (los diálogos de confirmación no siempre se muestran)
+      if (e.target.textContent !== '¿Borrar?'){ e.target.textContent = '¿Borrar?'; e.target.style.fontSize = '13px'; e.target.style.color = 'var(--bad)'; return; }
+      delete db.days[b]; persist([b]); renderHist(); toast('Día borrado');
+      return;
+    }
+    cur = tr.dataset.d; document.querySelector('[data-tab="dia"]').click();
+  });
+}
+
+async function download(name, text, type){
+  const dl = window.claude?.use ? await claude.use('downloads') : null;
+  if (dl){
+    try { await dl.save({filename: name, data: text}); toast('Archivo guardado'); }
+    catch(e){ if (e.code !== 'declined') toast('No se pudo descargar'); }
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type}));
+  a.download = name; a.click(); URL.revokeObjectURL(a.href);
+}
+// PDF de la hoja del día (el diálogo de imprimir no está disponible en la página publicada)
+function crearPDF(){
+  const pdf = new window.jspdf.jsPDF({unit:'mm', format:'letter'});
+  const W = 216, M = 14, ANCHO = W - 2*M;
+  const t = calcDay(day);
+  let y = 18;
+  const espacio = h => { if (y + h > 266){ pdf.addPage(); y = 18; } };
+  const linea = (txt, val, negrita) => {
+    espacio(6);
+    pdf.setFont('helvetica', negrita ? 'bold' : 'normal'); pdf.setFontSize(10);
+    pdf.text(pdf.splitTextToSize(String(txt), val === undefined ? ANCHO - 4 : ANCHO - 45)[0], M + 2, y);
+    if (val !== undefined) pdf.text(String(val), W - M - 2, y, {align:'right'});
+    pdf.setDrawColor(227,220,210); pdf.line(M, y + 2, W - M, y + 2);
+    y += 6.5;
+  };
+  const seccion = (titulo, total) => {
+    y += 3; espacio(16);
+    pdf.setFillColor(29,26,23); pdf.rect(M, y - 5, ANCHO, 7.5, 'F');
+    pdf.setFillColor(227,162,26); pdf.rect(M, y - 5, 2, 7.5, 'F');
+    pdf.setTextColor(255); pdf.setFont('helvetica','bold'); pdf.setFontSize(10.5);
+    pdf.text(titulo.toUpperCase(), M + 2, y);
+    if (total !== undefined) pdf.text(fmt(total), W - M - 2, y, {align:'right'});
+    pdf.setTextColor(0); y += 8;
+  };
+  const vacio = r => !Object.values(r).some(v => String(v ?? '').trim());
+
+  pdf.setFont('helvetica','bold'); pdf.setFontSize(18); pdf.text("TIO'S BROASTER", M, y);
+  pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
+  pdf.text('Diario de cuentas', M, y + 6);
+  const fechaLarga = new Date(cur + 'T12:00:00').toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  pdf.text(fechaLarga, W - M, y, {align:'right'});
+  if (day.elaborado) pdf.text('Elaborado por: ' + day.elaborado, W - M, y + 6, {align:'right'});
+  y += 14;
+
+  seccion('Resumen');
+  linea('Comidas rápidas', fmt(t.comidas)); linea('Otras ventas', fmt(t.ventas));
+  linea('Total ventas', fmt(t.totalVentas), true);
+  linea('Gastos caja', fmt(t.gastos)); linea('Sueldos', fmt(t.sueldos));
+  const res = t.totalVentas - t.gastos - t.sueldos;
+  linea('Ventas - gastos - sueldos', (res < 0 ? '-' : '') + fmt(Math.abs(res)), true);
+  if (day.primicia) linea('Primicia', fmt(num(day.primicia)));
+
+  const comidas = day.comidas.filter(r => !vacio(r));
+  if (comidas.length){ seccion('Comidas rápidas', t.comidas); comidas.forEach(r => linea(r.producto || '-', fmt(num(r.valor)))); }
+  const ventas = day.ventas.filter(r => !vacio(r));
+  if (ventas.length){ seccion('Otras ventas', t.ventas); ventas.forEach(r => linea(`${num(r.cant||1)} x ${r.producto || '-'} (${fmt(num(r.precio))})`, fmt(LISTS.ventas.calc(r)))); }
+  const gastos = day.gastos.filter(r => !vacio(r));
+  if (gastos.length){ seccion('Gastos caja', t.gastos); gastos.forEach(r => linea(r.detalle || '-', fmt(num(r.valor)))); }
+  const sueldos = day.sueldos.filter(r => !vacio(r));
+  if (sueldos.length){
+    seccion('Sueldos', t.sueldos);
+    sueldos.forEach(r => linea(`${r.nombre || '-'}   (sueldo ${fmt(num(r.base))}${expr(r.desc) ? ', descuentos ' + fmt(expr(r.desc)) : ''})`, fmt(LISTS.sueldos.calc(r))));
+  }
+
+  seccion('Base y cierre');
+  linea('Moneda', fmt(num(day.moneda))); linea('Billete', fmt(num(day.billete)));
+  linea('Total base', fmt(t.base), true); linea('Neto a guardar', fmt(t.neto), true);
+
+  const fil = FILETEO.filter(f => day.fileteo[f]);
+  if (fil.length){ seccion('Reporte de fileteo'); fil.forEach(f => linea(f, day.fileteo[f])); }
+  const inv = INVENTARIO.filter(f => day.inventario[f]);
+  if (inv.length || day.papa){ seccion('Inventario final'); inv.forEach(f => linea(f, day.inventario[f])); if (day.papa) linea('Porción papa', day.papa); }
+
+  if (String(day.novedades || '').trim()){
+    seccion('Novedades');
+    pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
+    pdf.splitTextToSize(day.novedades, ANCHO - 4).forEach(l => { espacio(5); pdf.text(l, M + 2, y); y += 5; });
+  }
+  return pdf.output('blob');
+}
+document.getElementById('pdf').onclick = () => {
+  if (!window.jspdf){ toast('No se pudo cargar el generador de PDF. Revisa el internet.'); return; }
+  download(`tios-broaster-${cur}.pdf`, crearPDF(), 'application/pdf');
+};
+
+document.getElementById('csv').onclick = () => {
+  const rows = [['Fecha','Comidas rapidas','Otras ventas','Total ventas','Gastos caja','Sueldos','Base','Neto guardar','Novedades']];
+  Object.keys(db.days).filter(k => k.startsWith(mes.value)).sort().forEach(k => {
+    const t = calcDay(db.days[k]);
+    rows.push([k,t.comidas,t.ventas,t.totalVentas,t.gastos,t.sueldos,t.base,t.neto,(db.days[k].novedades||'').replace(/\s+/g,' ')]);
+  });
+  download(`tios-broaster-${mes.value}.csv`, '﻿' + rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n'), 'text/csv');
+};
+document.getElementById('backup').onclick = () => download(`tios-broaster-respaldo-${today()}.json`, JSON.stringify(db), 'application/json');
+document.getElementById('restore').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!data.days) throw 0;
+    Object.assign(db.days, data.days); persist(Object.keys(data.days)); renderHist(); toast('Copia restaurada');
+  } catch(err){ toast('Archivo no válido'); }
+  e.target.value = '';
+};
+
+function toast(msg){
+  const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 1500);
+}
+
+// Si los datos cambian en otra pestaña o ventana, esta se actualiza sola
+function refrescar(desdeLocal = true){
+  if (desdeLocal && !remote) db = load();
+  const activo = document.activeElement;
+  if (activo && activo.matches('input,textarea') && document.hasFocus()) return;
+  if (document.getElementById('tab-hist').classList.contains('hide')) renderDay(); else renderHist();
+}
+window.addEventListener('storage', e => { if (e.key === KEY) refrescar(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refrescar(); });
+// Al pasar la medianoche, si estabas en "hoy", pasa al nuevo día
+let hoyActual = today();
+setInterval(() => {
+  const t = today();
+  if (t !== hoyActual){ if (cur === hoyActual){ cur = t; refrescar(); } hoyActual = t; }
+}, 60000);
+
+renderDay();
+conectarNube();
+</script>
+
+</html>
