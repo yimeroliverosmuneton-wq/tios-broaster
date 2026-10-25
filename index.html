@@ -152,6 +152,57 @@ tbody tr:hover{background:var(--paper)}
   .daybar .actions .btn{flex:1}
   .datebox h1{font-size:19px}
 }
+/* Inventario: bebidas y pollo */
+.inv-head{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.toolbar input[type=search]{flex:1;min-width:170px;width:auto}
+.seg2{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg2 button{border:0;background:transparent;padding:6px 12px;border-radius:999px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
+.seg2 button.on{background:var(--ink);color:var(--paper)}
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:12px;align-items:start}
+.inv{container-type:inline-size;padding:14px 16px}
+.inv h2{margin-bottom:6px}
+.price{font:600 12.5px/1 var(--f-num);color:var(--muted);white-space:nowrap}
+.price.sin{color:var(--bad)}
+.bv{display:grid;grid-template-columns:minmax(0,1fr) auto 36px 28px 64px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+.bv .n,.bc .n{min-width:0;overflow-wrap:anywhere;font-size:14px}
+.left{font:600 18px/1 var(--f-num);text-align:right;font-variant-numeric:tabular-nums}
+.left small{display:block;font:500 10px/1 var(--f-body);color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:4px}
+.low{color:var(--crust)} .out{color:var(--bad)}
+.sold{font:600 14px/1 var(--f-num);text-align:center;color:var(--muted)}
+.sell{height:42px;border-radius:10px;border:0;background:var(--crust);color:var(--crust-ink);font:800 15px/1 var(--f-display);cursor:pointer;touch-action:manipulation}
+.sell:active,.quick button:active{transform:scale(.95)}
+.mini{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:18px;line-height:1;color:var(--muted)}
+.mini:hover{color:var(--ink);border-color:var(--ink)}
+.bc{display:grid;grid-template-columns:minmax(0,1fr) 68px 68px 50px 56px;gap:6px;align-items:center;padding:6px 0;border-top:1px solid var(--line)}
+.bc input{padding:7px 4px;text-align:center}
+.bc input::placeholder{color:var(--muted);opacity:1}
+.bc .c{font:600 14px/1 var(--f-num);text-align:center}
+.bc.hd{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-top:0;padding-top:0}
+.bc.hd span{text-align:center}
+@container (max-width:380px){
+  .bc{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .bc .n{grid-column:1/-1;font-weight:600}
+  .bc.hd .n{display:none}
+}
+.catrow{display:grid;grid-template-columns:minmax(0,1.2fr) 100px minmax(0,1.6fr) 32px;gap:6px;align-items:center;margin-bottom:6px}
+.catrow.hd{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+@media (max-width:620px){.catrow{grid-template-columns:minmax(0,1fr) 96px 32px}.catrow .sab{grid-column:1/3}.catrow.hd span:nth-child(3){display:none}}
+.turno{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.turno input{flex:1;min-width:150px;width:auto}
+.pz-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.pz-stats input{text-align:center;padding:8px 4px}
+.pz-stats input::placeholder{color:var(--muted);opacity:1}
+.pz-stats .c{font:600 20px/38px var(--f-num);text-align:center;border-radius:8px;background:var(--paper)}
+.quick{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.quick button{min-width:46px;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--crust-soft);font:600 15px/1 var(--f-num);cursor:pointer;touch-action:manipulation}
+.quick input{width:76px;height:42px;text-align:center}
+.entries{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;min-height:30px;align-items:center}
+.entry{display:flex;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:2px 2px 2px 11px;font:600 14px/1 var(--f-num)}
+.entry button{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:17px;padding:4px 8px;border-radius:999px}
+.entry button:hover{color:var(--bad)}
+.sub-label{font-size:12px;color:var(--muted);margin:0 0 6px}
+@media (max-width:520px){.inv-head{grid-template-columns:repeat(2,minmax(0,1fr))}.inv-head .stat:first-child{grid-column:1/-1}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -163,14 +214,15 @@ tbody tr:hover{background:var(--paper)}
     </div>
     <nav class="seg tabs" aria-label="Secciones">
       <button data-tab="dia" class="on">Día</button>
+      <button data-tab="beb">Bebidas</button>
+      <button data-tab="pollo">Pollo</button>
       <button data-tab="hist">Historial</button>
     </nav>
   </div>
 </header>
 
 <main class="wrap">
-<section id="tab-dia">
-  <div class="daybar">
+  <div class="daybar" id="daybar">
     <button class="icon-btn" id="prev" aria-label="Día anterior">‹</button>
     <div class="datebox">
       <h1 id="fechaTxt"></h1>
@@ -183,6 +235,7 @@ tbody tr:hover{background:var(--paper)}
     </div>
   </div>
 
+<section id="tab-dia">
   <div class="hero" id="resumen">
     <div class="hero-main">
       <span class="eyebrow">Ventas del día</span>
@@ -261,6 +314,7 @@ tbody tr:hover{background:var(--paper)}
       <div class="card">
         <h2>Inventario final</h2>
         <div class="kv" id="inventario"></div>
+        <p class="hint">El pollo y las bebidas se controlan en sus propias pestañas.</p>
       </div>
       <div class="card">
         <h2>Novedades</h2>
@@ -268,6 +322,44 @@ tbody tr:hover{background:var(--paper)}
       </div>
     </div>
   </div>
+</section>
+
+<section id="tab-beb" class="hide">
+  <div class="inv-head">
+    <div class="stat hi"><span>Bebidas vendidas hoy</span><b id="bTotal">$0</b></div>
+    <div class="stat"><span>Unidades vendidas</span><b id="bUnid">0</b></div>
+    <div class="stat"><span>Por agotarse (3 o menos)</span><b id="bBajo">0</b></div>
+  </div>
+  <div class="toolbar">
+    <input type="search" id="bBuscar" placeholder="Buscar bebida o sabor" aria-label="Buscar bebida">
+    <div class="seg2" id="bModo">
+      <button data-m="vender" class="on">Vender</button>
+      <button data-m="contar">Contar inventario</button>
+    </div>
+    <button class="btn" id="bCatBtn">Editar bebidas y precios</button>
+  </div>
+  <p class="hint" id="bAyuda" style="margin:0 0 12px"></p>
+  <div class="card hide" id="bCat" style="margin-bottom:12px">
+    <h2>Bebidas y precios <button class="btn primary" id="bCatListo">Listo</button></h2>
+    <p class="sub-label">Escribe los sabores separados por comas. Cada sabor lleva su propia cuenta de inventario.</p>
+    <div class="catrow hd"><span>Bebida</span><span>Precio</span><span>Sabores</span><span></span></div>
+    <div id="bCatLista"></div>
+    <button class="btn add" id="bCatAdd">+ Agregar bebida</button>
+  </div>
+  <div class="inv-grid" id="bLista"></div>
+</section>
+
+<section id="tab-pollo" class="hide">
+  <div class="card turno">
+    <div class="seg2" id="pTurno">
+      <button data-t="Turno 1">Turno 1</button>
+      <button data-t="Turno 2">Turno 2</button>
+      <button data-t="Único turno">Único turno</button>
+    </div>
+    <input id="pNombre" placeholder="¿Quién está en el turno?" aria-label="Nombre del turno">
+  </div>
+  <p class="hint" style="margin:0 0 12px">Cada vez que saques porciones a la vitrina, toca el número. <b>Había</b> se llena solo con lo que quedó el día anterior; cámbialo si al contar da distinto.</p>
+  <div class="inv-grid" id="pLista"></div>
 </section>
 
 <section id="tab-hist" class="hide">
@@ -280,7 +372,7 @@ tbody tr:hover{background:var(--paper)}
   <div class="sum" id="resumenMes"></div>
   <div class="card scroll">
     <table>
-      <thead><tr><th>Fecha</th><th>Ventas</th><th>Gastos</th><th>Sueldos</th><th>Base</th><th>Neto guardar</th><th></th></tr></thead>
+      <thead><tr><th>Fecha</th><th>Ventas</th><th>Bebidas</th><th>Gastos</th><th>Sueldos</th><th>Base</th><th>Neto guardar</th><th></th></tr></thead>
       <tbody id="histBody"></tbody>
     </table>
     <p class="empty" id="histVacio" style="margin:12px 0 0">No hay días guardados en este mes. Los días aparecen aquí apenas escribes algo en ellos.</p>
@@ -293,8 +385,26 @@ tbody tr:hover{background:var(--paper)}
 <script>
 const KEY = 'tiosbroaster:v1';
 const FILETEO = ['Pechuga','Alas','Pernil','Contramuslo','Peso de recorte'];
-const INVENTARIO = ['Alas','Pernil','Contramuslo','Recorte','Aceite','Harina','Pasta','Papa precocida','Papa bulto','Pechuga'];
-const PRODUCTOS_BASE = [['Granizado',6000],['Granizado',12000],['Helado',6000],['Helado',10000],['Affogato',9000],['Jarra maracuyá en agua',9000]];
+const INVENTARIO = ['Aceite','Harina','Pasta','Papa precocida','Papa bulto'];
+const PRODUCTOS_BASE = [['Granizado',6000],['Granizado',12000],['Helado',6000],['Helado',10000],['Affogato',9000],['Jarra maracuyá en agua',9000],
+  ['Jugo natural en agua',9000],['Jugo natural en leche',10000],['Vaso jugo en leche',9000],['Vaso jugo en agua',7000]];
+const PIEZAS = ['Ala','Pernil','Contramuslo','Pechuga','Recorte'];
+const RAPIDOS = [1,2,4,5,6,8,10,12];
+// Lista de precios de bebidas de la hoja del negocio (precio 0 = falta ponerlo)
+const SAB_HIT = ['Lulo','Mora','Mango','Tropical','Naranja-piña'];
+const SAB_POSTOBON = ['Naranja','Colombiana','Limón','Pepsi','Uva','Manzana'];
+const CATALOGO_BASE = [
+  ['Coca-Cola mini',2500],['Coca-Cola 350',3500],['Coca-Cola 400',0],['Coca-Cola litro',6500],['Coca-Cola 1.5',8500],
+  ['Coca-Cola 2.5',12000],['Coca-Cola 3 litros',15000],['Sprite y Cuatro 350',3500],['Cuatro 350',0],['Cuatro 400',0],
+  ['Cuatro litro',0],['Sprite 1.5',0],['Ginger 400',4000],['Ginger 1.75',8500],['Fresskola 350',0],
+  ['Jugo del Valle personal',4000],['Té Postobón o del Valle',4500,['Durazno','Limón','Coco']],['Soda',4500],['Soda en lata',0],
+  ['Pony Malta 350',3500],['Pony Malta plástica',0],['Pony Malta litro',6500],['Pony Malta 1.5',8500],['Natumalta personal',0],
+  ['Kola y Pola vidrio 350',3500],['Kola y Pola lata',4500],['Kola y Pola 1.5',9000],['Refajo lata',4500],['Refajo 1.5',9000],
+  ['Hit vidrio 350',3500,SAB_HIT],['Hit 500',4500,SAB_HIT],['Hit litro',6500,SAB_HIT],['Hit 1.5',8500,SAB_HIT],
+  ['Postobón personal',4000,SAB_POSTOBON],['Postobón litrón',6500,SAB_POSTOBON],['Postobón 1.5',8500,SAB_POSTOBON],
+  ['Agua pequeña',1500],['Agua normal',3000],['Agua con gas',3500],['Agua saborizada',4000],['Agua litro',4500],
+  ['Gatorade',5000,['Tropical','Azul','Maracuyá','Mandarina']]
+].map(([n,p,s],i) => ({id:'b'+i, n, p, s: s ? [...s] : []}));
 
 // Columnas de cada lista: t = text | money | qty | expr | calc
 const LISTS = {
@@ -309,7 +419,11 @@ let cur = today();
 let day = getDay(cur);
 
 function load(){
-  try { return JSON.parse(localStorage.getItem(KEY)) || {days:{}}; } catch(e){ return {days:{}}; }
+  let d;
+  try { d = JSON.parse(localStorage.getItem(KEY)); } catch(e){}
+  d = d || {days:{}};
+  if (!Array.isArray(d.catalogo)) d.catalogo = structuredClone(CATALOGO_BASE);
+  return d;
 }
 // Copia local siempre; si la página está publicada, cada día se guarda también en la nube
 let remote = null, writing = false, timer;
@@ -356,6 +470,28 @@ async function conectarNube(){
     try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){}
     refrescar(false);
   }, () => toast('Sin conexión con la nube'));
+  // La lista de bebidas y precios se comparte entre dispositivos
+  let primeraCat = true;
+  r.doc('config/catalogo').onSnapshot(s => {
+    if (s.exists && Array.isArray(s.data().items)){
+      if (catTimer) return;
+      db.catalogo = structuredClone(s.data().items);
+      try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){}
+      if (!document.activeElement?.closest?.('#bCat')) renderBebidas();
+    } else if (primeraCat) guardarCatalogo();
+    primeraCat = false;
+  }, () => {});
+}
+let catTimer = null;
+function guardarCatalogo(){
+  try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){}
+  if (!remote) return;
+  clearTimeout(catTimer);
+  catTimer = setTimeout(async () => {
+    try { await remote.doc('config/catalogo').set({items: db.catalogo}); }
+    catch(e){ toast('No se pudo guardar la lista de bebidas en la nube'); }
+    catTimer = null;
+  }, 800);
 }
 function today(){
   const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
@@ -366,11 +502,15 @@ function shift(date, n){
   return d.toISOString().slice(0,10);
 }
 function blank(){
-  return {primicia:'',elaborado:'',moneda:'',billete:'',neto:'',novedades:'',papa:0,comidas:[],ventas:[],gastos:[],sueldos:[],fileteo:{},inventario:{}};
+  return {primicia:'',elaborado:'',moneda:'',billete:'',neto:'',novedades:'',papa:0,comidas:[],ventas:[],gastos:[],sueldos:[],fileteo:{},inventario:{},bebidas:{},pollo:{},turno:{}};
 }
 // Un día nuevo trae los empleados y sueldos del último día guardado
 function getDay(date){
-  if (db.days[date]) return db.days[date];
+  if (db.days[date]){
+    const d = db.days[date];
+    d.bebidas ||= {}; d.pollo ||= {}; d.turno ||= {};
+    return d;
+  }
   const d = blank();
   const prev = Object.keys(db.days).filter(k => k < date).sort().pop();
   if (prev) d.sueldos = db.days[prev].sueldos.map(s => ({nombre:s.nombre, base:s.base, desc:''}));
@@ -378,8 +518,60 @@ function getDay(date){
 }
 function save(){
   db.days[cur] = day;
+  memo.clear();
   persist();
   totals();
+}
+
+// Inventario que pasa de un día al otro: lo que quedó ayer es lo que hay hoy,
+// salvo que alguien escriba la cantidad contada ("ini").
+const memo = new Map();
+function rec(date, tipo, key){ return (date === cur ? day : db.days[date])?.[tipo]?.[key]; }
+function salieron(tipo, r){ return !r ? 0 : tipo === 'pollo' ? (r.vit || []).reduce((a,n) => a + num(n), 0) : num(r.vend); }
+function diasAntes(date){
+  if (!memo.has('dias')) memo.set('dias', Object.keys(db.days).sort());
+  const dias = memo.get('dias');
+  let i = dias.findIndex(k => k >= date);
+  return i === -1 ? dias.length : i;
+}
+function habiaAuto(tipo, key, date){
+  const ck = tipo + '|' + key + '|' + date;
+  if (memo.has(ck)) return memo.get(ck);
+  const i = diasAntes(date), prev = i > 0 ? memo.get('dias')[i-1] : null;
+  const v = prev ? quedan(tipo, key, prev) : 0;
+  memo.set(ck, v);
+  return v;
+}
+function habia(tipo, key, date){
+  const r = rec(date, tipo, key);
+  return r && r.ini !== undefined && r.ini !== '' ? num(r.ini) : habiaAuto(tipo, key, date);
+}
+function quedan(tipo, key, date){
+  const r = rec(date, tipo, key);
+  return habia(tipo, key, date) + num(r?.lleg) - salieron(tipo, r);
+}
+function regDe(tipo, key){ return day[tipo][key] ||= {}; }
+
+// Cada bebida (y cada sabor) lleva su propia cuenta
+const bkey = (it, s) => s ? it.id + '|' + s : it.id;
+function variantes(){
+  const out = [];
+  db.catalogo.forEach(it => (it.s.length ? it.s : ['']).forEach(s => out.push({it, s, key: bkey(it, s)})));
+  return out;
+}
+function precioDe(key){ const id = key.split('|')[0]; return db.catalogo.find(it => it.id === id)?.p || 0; }
+function nombreDe(key){
+  const [id, s] = key.split('|');
+  const it = db.catalogo.find(it => it.id === id);
+  return (it ? it.n : 'Bebida borrada') + (s ? ' ' + s : '');
+}
+function ventaBebidas(d){
+  let valor = 0, unid = 0;
+  for (const [k, r] of Object.entries(d.bebidas || {})){
+    const v = num(r.vend); if (!v) continue;
+    unid += v; valor += v * (r.p ?? precioDe(k));
+  }
+  return {valor, unid};
 }
 
 function num(v){
@@ -402,7 +594,8 @@ function calcDay(d){
   const prev = day; day = d;
   const t = {comidas:sumList('comidas'), ventas:sumList('ventas'), gastos:sumList('gastos'), sueldos:sumList('sueldos'), base:num(d.moneda)+num(d.billete), neto:num(d.neto)};
   day = prev;
-  t.totalVentas = t.comidas + t.ventas;
+  t.bebidas = ventaBebidas(d).valor;
+  t.totalVentas = t.comidas + t.ventas + t.bebidas;
   return t;
 }
 
@@ -412,7 +605,7 @@ function totals(){
   document.getElementById('baseTotal').value = fmt(t.base);
   const set = (id, txt) => document.getElementById(id).textContent = txt;
   set('hVentas', fmt(t.totalVentas));
-  set('hDetalle', `Comidas ${fmt(t.comidas)} · Otras ventas ${fmt(t.ventas)}`);
+  set('hDetalle', `Comidas ${fmt(t.comidas)} · Bebidas ${fmt(t.bebidas)} · Otras ${fmt(t.ventas)}`);
   set('hGastos', fmt(t.gastos)); set('hSueldos', fmt(t.sueldos)); set('hNeto', fmt(t.neto));
   const res = t.totalVentas - t.gastos - t.sueldos, hRes = document.getElementById('hRes');
   hRes.textContent = (res < 0 ? '−' : '') + fmt(Math.abs(res));
@@ -475,8 +668,161 @@ function renderKV(id, fields, obj){
   box.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => { day[obj][inp.dataset.k] = inp.value; save(); }));
 }
 
+// ---------- Bebidas ----------
+let bModo = 'vender';
+const nivel = n => n <= 0 ? 'out' : n <= 3 ? 'low' : '';
+function renderBebidas(){
+  memo.clear();
+  const q = document.getElementById('bBuscar').value.trim().toLowerCase();
+  const {valor, unid} = ventaBebidas(day);
+  document.getElementById('bTotal').textContent = fmt(valor);
+  document.getElementById('bUnid').textContent = unid;
+  // Solo cuentan como "por agotarse" las bebidas que ya tienen inventario registrado alguna vez
+  const conocidas = new Set();
+  Object.values(db.days).concat([day]).forEach(d => Object.keys(d.bebidas || {}).forEach(k => conocidas.add(k)));
+  document.getElementById('bBajo').textContent = variantes().filter(v => conocidas.has(v.key) && quedan('bebidas', v.key, cur) <= 3).length;
+  document.getElementById('bAyuda').innerHTML = bModo === 'vender'
+    ? 'Toca <b>+1</b> cada vez que vendas una bebida; se resta sola de lo que hay. Con <b>−</b> corriges un error.'
+    : '<b>Había</b> se llena solo con lo que quedó el día anterior (número gris). Escribe encima si al contar da distinto, y en <b>Llegó</b> lo que trajo el proveedor.';
+
+  const precioTag = p => p ? `<span class="price">${fmt(p)}</span>` : `<span class="price sin">Sin precio</span>`;
+  // Las bebidas con sabores tienen su tarjeta; las demás se agrupan por marca (primera palabra)
+  const grupos = [];
+  db.catalogo.forEach(it => {
+    const marca = it.s.length ? null : (it.n.split(' ')[0] || 'Otras');
+    const g = marca && grupos.find(g => g.marca === marca);
+    if (g) g.items.push(it); else grupos.push({marca, items: [it]});
+  });
+  const cards = grupos.map(g => {
+    const vis = [];
+    g.items.forEach(it => (it.s.length ? it.s : ['']).forEach(s => {
+      if (!q || (it.n + ' ' + s).toLowerCase().includes(q)) vis.push({it, s});
+    }));
+    if (!vis.length) return '';
+    const titulo = g.marca ? esc(g.marca) : `${esc(g.items[0].n)} ${precioTag(g.items[0].p)}`;
+    const filas = vis.map(({it, s}) => {
+      const key = bkey(it, s), r = day.bebidas[key] || {}, left = quedan('bebidas', key, cur);
+      const etiqueta = s ? esc(s) : `${esc(it.n)}<br>${precioTag(it.p)}`;
+      if (bModo === 'vender') return `<div class="bv" data-key="${esc(key)}">
+          <span class="n">${etiqueta}</span>
+          <span class="left ${conocidas.has(key) ? nivel(left) : ''}">${left}<small>quedan</small></span>
+          <button class="mini" data-act="menos" aria-label="Quitar una venta de ${esc(it.n + ' ' + s)}">−</button>
+          <span class="sold" title="Vendidas hoy">${num(r.vend)}</span>
+          <button class="sell" data-act="mas" aria-label="Vender ${esc(it.n + ' ' + s)}">+1</button>
+        </div>`;
+      return `<div class="bc" data-key="${esc(key)}">
+          <span class="n">${etiqueta}</span>
+          <input data-k="ini" inputmode="numeric" placeholder="${habiaAuto('bebidas', key, cur)}" value="${esc(r.ini ?? '')}" aria-label="Había">
+          <input data-k="lleg" inputmode="numeric" placeholder="0" value="${esc(r.lleg ?? '')}" aria-label="Llegó">
+          <span class="c">${num(r.vend)}</span>
+          <span class="c left ${nivel(left)}">${left}</span>
+        </div>`;
+    }).join('');
+    const hd = bModo === 'contar' ? `<div class="bc hd"><span class="n"></span><span>Había</span><span>Llegó</span><span>Vend.</span><span>Quedan</span></div>` : '';
+    return `<div class="card inv"><h2>${titulo}</h2>${hd}${filas}</div>`;
+  }).join('');
+  const lista = document.getElementById('bLista');
+  lista.innerHTML = cards || `<p class="empty">No hay bebidas que coincidan con "${esc(q)}".</p>`;
+  lista.querySelectorAll('[data-act]').forEach(b => b.onclick = () => {
+    const key = b.closest('[data-key]').dataset.key, r = regDe('bebidas', key);
+    const v = num(r.vend) + (b.dataset.act === 'mas' ? 1 : -1);
+    if (v < 0) return;
+    r.vend = v; r.p = precioDe(key);
+    save(); renderBebidas();
+    if (b.dataset.act === 'mas') toast(`Vendida: ${nombreDe(key)}`);
+  });
+  lista.querySelectorAll('.bc input').forEach(inp => inp.addEventListener('input', () => {
+    const fila = inp.closest('[data-key]'), key = fila.dataset.key;
+    regDe('bebidas', key)[inp.dataset.k] = inp.value.replace(/[^\d]/g, '');
+    save();
+    const left = quedan('bebidas', key, cur), el = fila.querySelector('.left');
+    el.textContent = left; el.className = 'c left ' + nivel(left);
+  }));
+}
+document.getElementById('bBuscar').addEventListener('input', renderBebidas);
+document.querySelectorAll('#bModo button').forEach(b => b.onclick = () => {
+  bModo = b.dataset.m;
+  document.querySelectorAll('#bModo button').forEach(x => x.classList.toggle('on', x === b));
+  renderBebidas();
+});
+
+// Editar la lista de bebidas, precios y sabores
+function renderCatalogo(){
+  const box = document.getElementById('bCatLista');
+  box.innerHTML = db.catalogo.map((it, i) => `<div class="catrow" data-i="${i}">
+      <input data-k="n" value="${esc(it.n)}" placeholder="Nombre" aria-label="Nombre">
+      <input data-k="p" class="money" inputmode="numeric" value="${fmtIn(it.p || '')}" placeholder="Precio" aria-label="Precio">
+      <input data-k="s" class="sab" value="${esc(it.s.join(', '))}" placeholder="Sin sabores" aria-label="Sabores">
+      <button class="x" data-del="${i}" title="Quitar bebida">×</button>
+    </div>`).join('');
+  box.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => {
+    const it = db.catalogo[inp.closest('[data-i]').dataset.i];
+    if (inp.dataset.k === 'n') it.n = inp.value;
+    if (inp.dataset.k === 'p') it.p = num(inp.value);
+    if (inp.dataset.k === 's') it.s = inp.value.split(',').map(s => s.trim()).filter(Boolean);
+    guardarCatalogo();
+  }));
+  box.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    if (b.textContent !== '¿Quitar?'){ b.textContent = '¿Quitar?'; b.style.fontSize = '12px'; b.style.color = 'var(--bad)'; return; }
+    db.catalogo.splice(b.dataset.del, 1); guardarCatalogo(); renderCatalogo();
+  });
+}
+document.getElementById('bCatBtn').onclick = () => {
+  const c = document.getElementById('bCat'); c.classList.toggle('hide');
+  if (!c.classList.contains('hide')) renderCatalogo();
+};
+document.getElementById('bCatListo').onclick = () => { document.getElementById('bCat').classList.add('hide'); renderBebidas(); toast('Lista de bebidas guardada'); };
+document.getElementById('bCatAdd').onclick = () => {
+  db.catalogo.push({id: 'b' + Date.now().toString(36), n: '', p: 0, s: []});
+  guardarCatalogo(); renderCatalogo();
+  const ins = document.querySelectorAll('#bCatLista .catrow:last-child input'); if (ins.length) ins[0].focus();
+};
+
+// ---------- Pollo: porciones que salen a la vitrina ----------
+function renderPollo(){
+  memo.clear();
+  document.querySelectorAll('#pTurno button').forEach(b => b.classList.toggle('on', day.turno.tipo === b.dataset.t));
+  document.getElementById('pNombre').value = day.turno.nombre || '';
+  const box = document.getElementById('pLista');
+  box.innerHTML = PIEZAS.map(p => {
+    const r = day.pollo[p] || {}, vit = r.vit || [], left = quedan('pollo', p, cur);
+    return `<div class="card inv" data-p="${p}">
+      <h2>${p} <span class="tag">${salieron('pollo', r)} a vitrina</span></h2>
+      <div class="pz-stats">
+        <div><label>Había</label><input data-k="ini" inputmode="numeric" placeholder="${habiaAuto('pollo', p, cur)}" value="${esc(r.ini ?? '')}"></div>
+        <div><label>Llegó</label><input data-k="lleg" inputmode="numeric" placeholder="0" value="${esc(r.lleg ?? '')}"></div>
+        <div><label>A vitrina</label><div class="c">${salieron('pollo', r)}</div></div>
+        <div><label>Quedan</label><div class="c left ${nivel(left)}">${left}</div></div>
+      </div>
+      <p class="sub-label">Sacar a vitrina</p>
+      <div class="quick">
+        ${RAPIDOS.map(n => `<button data-n="${n}" aria-label="Sacar ${n} ${p}">+${n}</button>`).join('')}
+        <input inputmode="numeric" placeholder="Otro" aria-label="Otra cantidad de ${p}">
+      </div>
+      <div class="entries">${vit.length ? vit.map((n, i) => `<span class="entry">${n}<button data-quitar="${i}" aria-label="Quitar ${n}">×</button></span>`).join('') : '<span class="sub-label" style="margin:0">Todavía no ha salido nada hoy.</span>'}</div>
+    </div>`;
+  }).join('');
+  const agregar = (p, n) => { if (n > 0){ (regDe('pollo', p).vit ||= []).push(n); save(); renderPollo(); toast(`${n} ${p} a la vitrina`); } };
+  box.querySelectorAll('[data-p]').forEach(card => {
+    const p = card.dataset.p;
+    card.querySelectorAll('[data-n]').forEach(b => b.onclick = () => agregar(p, +b.dataset.n));
+    const otro = card.querySelector('.quick input');
+    otro.addEventListener('change', () => agregar(p, num(otro.value)));
+    card.querySelectorAll('[data-quitar]').forEach(b => b.onclick = () => { day.pollo[p].vit.splice(b.dataset.quitar, 1); save(); renderPollo(); });
+    card.querySelectorAll('.pz-stats input').forEach(inp => inp.addEventListener('input', () => {
+      regDe('pollo', p)[inp.dataset.k] = inp.value.replace(/[^\d]/g, '');
+      save();
+      const left = quedan('pollo', p, cur), el = card.querySelector('.left');
+      el.textContent = left; el.className = 'c left ' + nivel(left);
+    }));
+  });
+}
+document.querySelectorAll('#pTurno button').forEach(b => b.onclick = () => { day.turno.tipo = b.dataset.t; save(); renderPollo(); });
+document.getElementById('pNombre').addEventListener('input', e => { day.turno.nombre = e.target.value; save(); });
+
 function renderDay(){
   day = getDay(cur);
+  memo.clear();
   document.getElementById('fecha').value = cur;
   const larga = new Date(cur + 'T12:00:00').toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long'});
   document.getElementById('fechaTxt').textContent = cur === today() ? 'Hoy, ' + larga : larga[0].toUpperCase() + larga.slice(1);
@@ -486,6 +832,8 @@ function renderDay(){
   renderKV('fileteo', FILETEO, 'fileteo');
   renderKV('inventario', INVENTARIO, 'inventario');
   renderChips();
+  renderBebidas();
+  renderPollo();
 }
 
 document.querySelectorAll('[data-f]').forEach(el => el.addEventListener('input', () => { day[el.dataset.f] = el.value; save(); }));
@@ -502,8 +850,8 @@ document.getElementById('hoy').onclick = () => { cur = today(); renderDay(); };
 // Historial
 document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => {
   document.querySelectorAll('nav.tabs button').forEach(x => x.classList.toggle('on', x === b));
-  document.getElementById('tab-dia').classList.toggle('hide', b.dataset.tab !== 'dia');
-  document.getElementById('tab-hist').classList.toggle('hide', b.dataset.tab !== 'hist');
+  for (const t of ['dia','beb','pollo','hist']) document.getElementById('tab-' + t).classList.toggle('hide', b.dataset.tab !== t);
+  document.getElementById('daybar').classList.toggle('hide', b.dataset.tab === 'hist');
   if (b.dataset.tab === 'hist') renderHist(); else renderDay();
 });
 const mes = document.getElementById('mes');
@@ -517,7 +865,7 @@ function renderHist(){
     const t = calcDay(db.days[k]);
     for (const x in tot) tot[x] += t[x];
     const f = new Date(k+'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'numeric',month:'short'});
-    return `<tr data-d="${k}"><td>${f}</td><td>${fmt(t.totalVentas)}</td><td>${fmt(t.gastos)}</td><td>${fmt(t.sueldos)}</td><td>${fmt(t.base)}</td><td>${fmt(t.neto)}</td><td><button class="x" data-borrar="${k}" title="Borrar día">×</button></td></tr>`;
+    return `<tr data-d="${k}"><td>${f}</td><td>${fmt(t.totalVentas)}</td><td>${fmt(t.bebidas)}</td><td>${fmt(t.gastos)}</td><td>${fmt(t.sueldos)}</td><td>${fmt(t.base)}</td><td>${fmt(t.neto)}</td><td><button class="x" data-borrar="${k}" title="Borrar día">×</button></td></tr>`;
   }).join('');
   document.getElementById('histVacio').classList.toggle('hide', dias.length > 0);
   document.getElementById('resumenMes').innerHTML = stat('Ventas del mes', tot.totalVentas, true) + stat('Gastos del mes', tot.gastos) + stat('Sueldos del mes', tot.sueldos) + stat('Neto guardado', tot.neto);
@@ -579,7 +927,7 @@ function crearPDF(){
   y += 14;
 
   seccion('Resumen');
-  linea('Comidas rápidas', fmt(t.comidas)); linea('Otras ventas', fmt(t.ventas));
+  linea('Comidas rápidas', fmt(t.comidas)); linea('Bebidas', fmt(t.bebidas)); linea('Otras ventas', fmt(t.ventas));
   linea('Total ventas', fmt(t.totalVentas), true);
   linea('Gastos caja', fmt(t.gastos)); linea('Sueldos', fmt(t.sueldos));
   const res = t.totalVentas - t.gastos - t.sueldos;
@@ -588,6 +936,12 @@ function crearPDF(){
 
   const comidas = day.comidas.filter(r => !vacio(r));
   if (comidas.length){ seccion('Comidas rápidas', t.comidas); comidas.forEach(r => linea(r.producto || '-', fmt(num(r.valor)))); }
+  memo.clear();
+  const vendidas = Object.entries(day.bebidas || {}).filter(([, r]) => num(r.vend));
+  if (vendidas.length){
+    seccion('Bebidas vendidas', t.bebidas);
+    vendidas.forEach(([k, r]) => { const p = r.p ?? precioDe(k); linea(`${num(r.vend)} x ${nombreDe(k)} (${fmt(p)})  -  quedan ${quedan('bebidas', k, cur)}`, fmt(num(r.vend) * p)); });
+  }
   const ventas = day.ventas.filter(r => !vacio(r));
   if (ventas.length){ seccion('Otras ventas', t.ventas); ventas.forEach(r => linea(`${num(r.cant||1)} x ${r.producto || '-'} (${fmt(num(r.precio))})`, fmt(LISTS.ventas.calc(r)))); }
   const gastos = day.gastos.filter(r => !vacio(r));
@@ -601,6 +955,16 @@ function crearPDF(){
   seccion('Base y cierre');
   linea('Moneda', fmt(num(day.moneda))); linea('Billete', fmt(num(day.billete)));
   linea('Total base', fmt(t.base), true); linea('Neto a guardar', fmt(t.neto), true);
+
+  const piezas = PIEZAS.filter(p => { const r = day.pollo?.[p]; return r && (salieron('pollo', r) || r.lleg || r.ini); });
+  if (piezas.length || day.turno?.tipo || day.turno?.nombre){
+    seccion('Pollo - porciones a vitrina');
+    if (day.turno?.tipo || day.turno?.nombre) linea(`${day.turno.tipo || 'Turno'}${day.turno.nombre ? ': ' + day.turno.nombre : ''}`);
+    piezas.forEach(p => {
+      const r = day.pollo[p];
+      linea(`${p}: había ${habia('pollo', p, cur)}, llegó ${num(r.lleg)}, a vitrina ${(r.vit || []).join(' + ') || 0}`, `quedan ${quedan('pollo', p, cur)}`);
+    });
+  }
 
   const fil = FILETEO.filter(f => day.fileteo[f]);
   if (fil.length){ seccion('Reporte de fileteo'); fil.forEach(f => linea(f, day.fileteo[f])); }
@@ -620,10 +984,10 @@ document.getElementById('pdf').onclick = () => {
 };
 
 document.getElementById('csv').onclick = () => {
-  const rows = [['Fecha','Comidas rapidas','Otras ventas','Total ventas','Gastos caja','Sueldos','Base','Neto guardar','Novedades']];
+  const rows = [['Fecha','Comidas rapidas','Bebidas','Otras ventas','Total ventas','Gastos caja','Sueldos','Base','Neto guardar','Novedades']];
   Object.keys(db.days).filter(k => k.startsWith(mes.value)).sort().forEach(k => {
     const t = calcDay(db.days[k]);
-    rows.push([k,t.comidas,t.ventas,t.totalVentas,t.gastos,t.sueldos,t.base,t.neto,(db.days[k].novedades||'').replace(/\s+/g,' ')]);
+    rows.push([k,t.comidas,t.bebidas,t.ventas,t.totalVentas,t.gastos,t.sueldos,t.base,t.neto,(db.days[k].novedades||'').replace(/\s+/g,' ')]);
   });
   download(`tios-broaster-${mes.value}.csv`, '﻿' + rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n'), 'text/csv');
 };
@@ -633,7 +997,9 @@ document.getElementById('restore').onchange = async e => {
   try {
     const data = JSON.parse(await f.text());
     if (!data.days) throw 0;
-    Object.assign(db.days, data.days); persist(Object.keys(data.days)); renderHist(); toast('Copia restaurada');
+    Object.assign(db.days, data.days); persist(Object.keys(data.days));
+    if (Array.isArray(data.catalogo)){ db.catalogo = data.catalogo; guardarCatalogo(); }
+    renderHist(); toast('Copia restaurada');
   } catch(err){ toast('Archivo no válido'); }
   e.target.value = '';
 };
