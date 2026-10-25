@@ -203,6 +203,10 @@ tbody tr:hover{background:var(--paper)}
 .entry button:hover{color:var(--bad)}
 .sub-label{font-size:12px;color:var(--muted);margin:0 0 6px}
 @media (max-width:520px){.inv-head{grid-template-columns:repeat(2,minmax(0,1fr))}.inv-head .stat:first-child{grid-column:1/-1}}
+.lock{position:fixed;inset:0;z-index:30;background:var(--paper);display:grid;place-items:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.lock[hidden]{display:none}
+.lock-card{width:min(100%,380px);display:grid;gap:10px;padding:24px}
+.lock-card h2{margin:4px 0 0;font-size:22px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -369,6 +373,7 @@ tbody tr:hover{background:var(--paper)}
     <button class="btn" id="backup">Copia de seguridad</button>
     <label class="btn" style="margin:0;font-size:15px;color:var(--ink)">Restaurar<input type="file" id="restore" accept=".json" class="hide"></label>
   </div>
+  <p class="hint" style="margin:0 0 12px"><span id="nubeEstado">Se guarda solo en este dispositivo.</span> <button class="btn" id="cambiarClave" hidden style="margin-left:6px;padding:4px 10px;font-size:13px">Cambiar clave</button></p>
   <div class="sum" id="resumenMes"></div>
   <div class="card scroll">
     <table>
@@ -380,6 +385,16 @@ tbody tr:hover{background:var(--paper)}
 </section>
 </main>
 <div class="toast" id="toast" role="status"></div>
+<div class="lock" id="lock" hidden>
+  <form class="card lock-card" id="lockForm">
+    <div class="mark" aria-hidden="true">TB</div>
+    <h2>Clave del negocio</h2>
+    <p class="sub-label">Escribe la clave de Tio's Broaster para ver y guardar las cuentas. Todos los del equipo usan la misma clave. Solo se pide una vez en cada celular o computador.</p>
+    <input type="password" id="lockClave" autocomplete="current-password" placeholder="Clave" aria-label="Clave del negocio">
+    <p class="sub-label" id="lockError" style="color:var(--bad);min-height:1em"></p>
+    <button class="btn primary" type="submit">Entrar</button>
+  </form>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
@@ -450,11 +465,61 @@ async function flush(){
     }
   } finally { writing = false; }
 }
+// En el enlace de Claude se usa su nube; en la página de GitHub, Firebase protegido con la clave del negocio
+const FIREBASE = {
+  apiKey: 'AIzaSyAWes7Sd9WwkDEjAP6629VOaidJjx4DJQY',
+  authDomain: 'tios-broaster.firebaseapp.com',
+  projectId: 'tios-broaster',
+  storageBucket: 'tios-broaster.firebasestorage.app',
+  messagingSenderId: '738090527168',
+  appId: '1:738090527168:web:ed4776e229de81d5b68025'
+};
+const CLAVE_KEY = KEY + ':clave';
+function cargarScript(src){
+  return new Promise((ok, mal) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = mal; document.head.appendChild(s); });
+}
+async function hashClave(clave){
+  const bytes = new TextEncoder().encode('tiosbroaster:' + clave.trim().toLowerCase());
+  return [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function pedirClave(){
+  const lock = document.getElementById('lock'), inp = document.getElementById('lockClave'), err = document.getElementById('lockError');
+  lock.hidden = false; setTimeout(() => inp.focus(), 50);
+  return new Promise(ok => document.getElementById('lockForm').onsubmit = async e => {
+    e.preventDefault();
+    if (inp.value.trim().length < 8){ err.textContent = 'La clave debe tener al menos 8 letras o números.'; return; }
+    const h = await hashClave(inp.value);
+    try { localStorage.setItem(CLAVE_KEY, h); } catch(e){}
+    lock.hidden = true; ok(h);
+  });
+}
+async function conectarFirebase(){
+  let clave = null;
+  try { clave = localStorage.getItem(CLAVE_KEY); } catch(e){}
+  if (!clave) clave = await pedirClave();
+  try {
+    await cargarScript('https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js');
+    await cargarScript('https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js');
+  } catch(e){ estadoNube('Sin internet: se guarda solo en este dispositivo'); return null; }
+  firebase.initializeApp(FIREBASE);
+  const base = firebase.firestore().collection('negocios').doc(clave);
+  // Misma forma que la nube de Claude, para que el resto del código no cambie
+  return {
+    collection: name => {
+      const c = base.collection(name);
+      return { doc: id => c.doc(id), onSnapshot: (next, err) => c.onSnapshot(s => next({docs: s.docs}), err) };
+    },
+    doc: path => { const [c, id] = path.split('/'); return base.collection(c).doc(id); }
+  };
+}
+function estadoNube(txt){ const el = document.getElementById('nubeEstado'); if (el) el.textContent = txt; }
 async function conectarNube(){
-  if (!window.claude?.use) return;
-  const r = await claude.use('db');
+  let r = null;
+  if (window.claude?.use) r = await claude.use('db');
+  else if (FIREBASE) r = await conectarFirebase();
   if (!r) return;
   remote = r;
+  estadoNube('Conectado: todo se guarda en la nube y se ve en todos los dispositivos');
   let primera = true;
   r.collection('dias').onSnapshot(snap => {
     const days = {};
@@ -469,7 +534,10 @@ async function conectarNube(){
     db.days = days;
     try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){}
     refrescar(false);
-  }, () => toast('Sin conexión con la nube'));
+  }, e => {
+    const msg = e?.code === 'permission-denied' ? 'La nube no dio permiso: revisa las reglas de Firebase' : 'Sin conexión con la nube';
+    toast(msg); estadoNube(msg);
+  });
   // La lista de bebidas y precios se comparte entre dispositivos
   let primeraCat = true;
   r.doc('config/catalogo').onSnapshot(s => {
@@ -1024,6 +1092,12 @@ setInterval(() => {
   const t = today();
   if (t !== hoyActual){ if (cur === hoyActual){ cur = t; refrescar(); } hoyActual = t; }
 }, 60000);
+
+if (FIREBASE && !window.claude){
+  const b = document.getElementById('cambiarClave');
+  b.hidden = false;
+  b.onclick = () => { try { localStorage.removeItem(CLAVE_KEY); } catch(e){} location.reload(); };
+}
 
 renderDay();
 conectarNube();
